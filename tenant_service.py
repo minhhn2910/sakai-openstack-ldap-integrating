@@ -49,13 +49,16 @@ def add_users_to_tenant(tenant, user_list, role=default_role):
 	ldif = modlist.addModlist(attributes)
 	#ldap.modlist.modifyModlist()
 	l.add_s(role_dn,ldif)
-
-
+	
+	users = list()
+	for user in user_list:
+		users.append("cn=%s,%s" %(user,user_base_dn))
+		
 	current_tenant_dn='cn=%s,cn=%s,%s'%(role,tenant,tenant_base_dn)
 
 	#add bulk of users to roleOccupant
 	old = {'roleOccupant':''}
-	new = {'roleOccupant':tuple(user_list)}
+	new = {'roleOccupant':tuple(users)}
 
 	# Convert place-holders for modify-operation using modlist-module
 	ldif = modlist.modifyModlist(old,new)
@@ -63,11 +66,42 @@ def add_users_to_tenant(tenant, user_list, role=default_role):
 	l.modify_s(current_tenant_dn,ldif)
 	# Its nice to the server to disconnect and free resources when done
 	l.unbind_s()
-              
-
 	return True
 	
+def remove_tenant_dn(tenant):
+	l = ldap.initialize("ldap://localhost/")
+	l.simple_bind_s("cn=Manager,dc=cse,dc=hcmut","openstack")	
+	deleteDN = "cn=%s,%s" %(tenant,tenant_base_dn)
+	#search for child entries first
+	baseDN = deleteDN
+	searchScope = ldap.SCOPE_SUBTREE
+	retrieveAttributes = None 
+	searchFilter = '(objectClass=*)'
+	child_entries = list()
+	try:
+		ldap_result_id = l.search(baseDN, searchScope, searchFilter, retrieveAttributes)
+		result_set = []
+		while 1:
+			result_type, result_data = l.result(ldap_result_id, 0)
+			if (result_data == []):
+				break
+			else:	
+				child_entries.append( result_data[0][0])
+	except ldap.LDAPError, e:
+		print e
 
+	for entry in child_entries:
+		try:
+			l.delete_s(entry)
+		except ldap.LDAPError, e:
+			pass		
+			
+#now remove tenant entry 
+	try:
+		l.delete_s(deleteDN)
+	except ldap.LDAPError, e:
+		pass
+	l.unbind_s()
 
 def get_old_tenant_member(tenant,role):
 	try:
@@ -112,17 +146,6 @@ def existed_tenant(tenant_name):
 				return True
 	except ldap.LDAPError, e:
 		print e
+
 		
-user1 = "cn=admin,ou=Users,dc=cse,dc=hcmut"
-user2 = "cn=glance,ou=Users,dc=cse,dc=hcmut"
-user3 = "cn=nova,ou=Users,dc=cse,dc=hcmut"
-user_list=list()
-user_list.append(user1)
-user_list.append(user2)
-user_list.append(user3)
-
-tenant_name="service"
-add_tenant(tenant_name) 
-add_users_to_tenant(tenant_name, user_list,"admin")
-
 	

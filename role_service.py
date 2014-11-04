@@ -22,7 +22,6 @@ def build_role_child_entry(role_name,tenant_name):
 	attrs['objectclass'] = ['organizationalRole']
 	attrs['cn'] = '%s'%role_name
 	return entry_dn, attrs 	
-	
 
 def add_role(role_name):
 	role_dn,attributes = build_role_entry(role_name)

@@ -1,7 +1,7 @@
 import ldap
 import ldap.modlist as modlist
 import json
-from password_service import *
+
 #define base_dn for tenant, user and role; bewlow are just samples
 tenant_base_dn='ou=Tenants,dc=cse,dc=hcmut'
 user_base_dn= 'ou=Users,dc=cse,dc=hcmut'
@@ -43,6 +43,15 @@ def modify_password(user,password):
 	# Its nice to the server to disconnect and free resources when done
 	l.unbind_s()
 
+def remove_user_dn(user):
+	l = ldap.initialize("ldap://localhost/")
+	l.simple_bind_s("cn=Manager,dc=cse,dc=hcmut","openstack")	
+	deleteDN = "cn=%s,%s" %(user,user_base_dn)
+	try:
+		l.delete_s(deleteDN)
+	except ldap.LDAPError, e:
+		print e
+	l.unbind_s()					
 	
 def get_old_hashed_password(user):
 	try:
@@ -76,8 +85,9 @@ def add_user(user_dn, attributes):
 	l.add_s(user_dn,ldif)
 	l.unbind_s()  
 
-def add_user_to_tenant(user_dn, tenant, role, old_tenant_users):
+def add_user_to_tenant(user, tenant, role, old_tenant_users):
 	tenant_dn='cn=%s,cn=%s,%s'%(role,tenant,tenant_base_dn)
+	user_dn = 'cn=%s,%s'%(user,user_base_dn)
 	print tenant_dn
 	new_tenant_users = add_user_to_existing_role_occupants(user_dn,old_tenant_users)
 	l = ldap.initialize("ldap://localhost/")
@@ -116,9 +126,5 @@ def existed_user(user_name):
 				return True
 	except ldap.LDAPError, e:
 		print e
-
-user = "50000001"
-password=makeSecret("password_success")
-modify_password(user,password)
 
         
