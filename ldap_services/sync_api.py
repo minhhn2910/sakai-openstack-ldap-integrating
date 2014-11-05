@@ -40,6 +40,7 @@ def delete_course(course_name):
 		remove_tenant_dn(course_name)
 	except:
 		pass
+		
 def delete_user(user):
 	try:
 		remove_user_dn(user)
@@ -52,3 +53,5 @@ def set_user_password(user,password):
 	except:
 		pass
 
+#sync_course('Operating System',['7777','123','8888'])
+#delete_course('test_course')

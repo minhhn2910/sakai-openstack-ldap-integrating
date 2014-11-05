@@ -1,0 +1,5 @@
+User editting service:
+        sakaii-10.2/user/user-tool/tool/src/java/org/sakaiproject/user/tool/UsersAction.java
+User add and remove:
+        sakai-10.2/kernel/kernel-impl/src/main/java/org/sakaiproject/user/impl/BaseUserDirectoryService.java 
+

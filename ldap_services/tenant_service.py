@@ -32,6 +32,9 @@ def add_tenant(tenant_name):
 	ldif = modlist.addModlist(attributes)
 	l.add_s(tenant_dn,ldif)
 	l.unbind_s()  
+	# add default admin group to new tenant
+	admin_users=['admin','glance','nova'];
+	add_users_to_tenant(tenant_name, admin_users, 'admin')
 	return True
 
 ###user_list = list() type in python
