@@ -7,7 +7,8 @@ default_role = '_member_'
 tenant_base_dn='ou=Tenants,dc=cse,dc=hcmut'
 user_base_dn= 'ou=Users,dc=cse,dc=hcmut'
 role_base_dn='ou=Roles,dc=cse,dc=hcmut'
-
+admin_tenant_dn = 'cn=admin,ou=Tenants,dc=cse,dc=hcmut'
+service_tenant_dn = 'cn=service,ou=Tenants,dc=cse,dc=hcmut'
 def build_tenant_entry(tenant_name):
 	entry_dn = "cn=%s,%s" %(tenant_name,tenant_base_dn)
 	print entry_dn
@@ -70,11 +71,36 @@ def add_users_to_tenant(tenant, user_list, role=default_role):
 	# Its nice to the server to disconnect and free resources when done
 	l.unbind_s()
 	return True
-	
-def remove_tenant_dn(tenant):
+def get_all_tenant():
 	l = ldap.initialize("ldap://localhost/")
 	l.simple_bind_s("cn=Manager,dc=cse,dc=hcmut","openstack")	
+	#search for child entries first
+	baseDN = tenant_base_dn
+	searchScope = ldap.SCOPE_ONELEVEL
+	retrieveAttributes = None 
+	searchFilter = '(objectClass=*)'
+	child_entries = list()
+	try:
+		ldap_result_id = l.search(baseDN, searchScope, searchFilter, retrieveAttributes)
+		result_set = []
+		while 1:
+			result_type, result_data = l.result(ldap_result_id, 0)
+			if (result_data == []):
+				break
+			else:
+				child_entries.append( result_data[0][0])
+	except ldap.LDAPError, e:
+		print e
+	return child_entries
+
+def remove_tenant(tenant_name):
 	deleteDN = "cn=%s,%s" %(tenant,tenant_base_dn)
+	remove_tenant_dn(deleteDN)
+	
+def remove_tenant_dn(deleteDN):
+	l = ldap.initialize("ldap://localhost/")
+	l.simple_bind_s("cn=Manager,dc=cse,dc=hcmut","openstack")	
+#	deleteDN = "cn=%s,%s" %(tenant,tenant_base_dn)
 	#search for child entries first
 	baseDN = deleteDN
 	searchScope = ldap.SCOPE_SUBTREE
@@ -135,7 +161,7 @@ def existed_tenant(tenant_name):
 	except ldap.LDAPError, e:
 		print e
 	baseDN = tenant_base_dn
-	searchScope = ldap.SCOPE_SUBTREE
+	searchScope = ldap.SCOPE_ONELEVEL
 	retrieveAttributes = None
 	searchFilter = "cn=%s"%tenant_name
 	try:
@@ -151,4 +177,3 @@ def existed_tenant(tenant_name):
 		print e
 
 		
-	

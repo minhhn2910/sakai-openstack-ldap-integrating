@@ -45,17 +45,20 @@ class DAO(object):
 				cursor.execute("SELECT * FROM  `SAKAI_SITE_USER` WHERE  `SITE_ID` =  '%s' " %row[0])
 				user_table = cursor.fetchall()
 				UserList = list()
+				UserList.append("aaa")
 				for user_id_row in user_table:
 					#get user_id
 					user_id = user_id_row[1]
 					cursor.execute("SELECT * FROM  `SAKAI_USER_ID_MAP` WHERE  `USER_ID` =  '%s' " %user_id)
-					eid = cursor.fetchone()[1]
-					UserList.append(eid)           
+					user_eid_row = cursor.fetchone()
+					if user_eid_row is None:
+						continue
+					eid = user_eid_row[1]
+					UserList.append(eid)   
+				CourseUserList.append(UserList)         
+			except (RuntimeError, TypeError, NameError) as e:
+					print  e
 
-				CourseUserList.append(UserList)        
-			except (RuntimeError, TypeError, NameError):
-				pass
-		
 		db.close()
 		return CourseList, CourseUserList	
 
@@ -70,8 +73,8 @@ class DAO(object):
 	
 def main(argv):
 	dao = DAO()
-	CourseList, CourseUserList = dao.fetch_courses()
 	user_list = dao.fetch_sakai_student()
+	CourseList, CourseUserList = dao.fetch_courses()
 	if len(argv)==0 or len(argv)==2:
 		dao.sync_students(user_list)
 		dao.sync_courses(CourseList, CourseUserList)

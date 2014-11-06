@@ -1,3 +1,4 @@
+import tenant_service
 from tenant_service import *
 from user_service import *
 from password_service import *
@@ -24,6 +25,14 @@ def sync_course(course,user_list,role=default_role):
 			pass
 	return True
 	
+#clean course after 1 semester	
+def clean_course():
+	tenant_list = get_all_tenant()
+	for tenant in tenant_list:
+		if (tenant!=tenant_service.admin_tenant_dn and tenant!=tenant_service.service_tenant_dn):
+			remove_tenant_dn(tenant)
+	
+		
 ###############################user api##############################
 def sync_user(user,password=default_password):
 	try:
@@ -37,7 +46,7 @@ def sync_user(user,password=default_password):
 ##temporary pass all excepts. Just check the LDAP tree for result
 def delete_course(course_name):
 	try:
-		remove_tenant_dn(course_name)
+		remove_tenant(course_name)
 	except:
 		pass
 		
@@ -55,3 +64,4 @@ def set_user_password(user,password):
 
 #sync_course('Operating System',['7777','123','8888'])
 #delete_course('test_course')
+
