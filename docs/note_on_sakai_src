@@ -1,5 +1,32 @@
 User editting service:
         sakaii-10.2/user/user-tool/tool/src/java/org/sakaiproject/user/tool/UsersAction.java
+		catch user's change password event in this file. and call our service
+		method void doSave(RunData data, Context context)
+				//minhhn
+				String test_str = edit.getEid();
+				try{
+						String command = "echo "+ "\'"+ test_str +"\'" + " > /tmp/user_edit";
+						String [] commands = { "bash", "-c", command };
+						Runtime rt = Runtime.getRuntime();
+						Process pr = rt.exec(commands);
+					}
+					catch(Exception e) { // or your specific exception
+					
+					}   
+
+		private boolean readUserForm(RunData data, SessionState state)
+				try{
+					String command = "python $SYNC_SERVICE/set_password_no_eid.py " + pw;
+					String [] commands = { "bash", "-c", command };
+					Runtime rt = Runtime.getRuntime();
+					Process pr = rt.exec(commands);
+					}
+				catch(Exception e) { // or your specific exception
+						
+					}
+
+ 
+
 User add and remove:
         sakai-10.2/kernel/kernel-impl/src/main/java/org/sakaiproject/user/impl/BaseUserDirectoryService.java 
 
